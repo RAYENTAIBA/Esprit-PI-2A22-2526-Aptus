@@ -37,5 +37,5 @@ Voir le fichier `.env.example` pour configurer les clés API nécessaires (Groq,
 Le dossier `demo/` contient les captures d'écran et la documentation visuelle du projet.
 
 ## Auteurs
-- **Ons Mestaoui** - Classe : 2A22 - Année : 2025/2026
+- **RAYEN TAIBA** - Classe : 2A22 - Année : 2025/2026
 - **Tuteur** : Chedy Bouslema
