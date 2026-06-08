@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'admin' => '../backoffice/dashboard.php',
                         'candidat' => 'jobs_feed.php',
                         'entreprise' => 'hr_posts.php',
-                        'tuteur' => 'dashboard_tuteur.php'
+                        'tuteur' => 'tuteur_dashboard.php'
                     ];
                     $roleKey = strtolower($user['role']);
                     

@@ -45,6 +45,14 @@ foreach ($dbReports as $r) {
 }
 .feed-filter-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
 .feed-filter-btn.active { background: var(--accent-primary); color: #fff; border-color: var(--accent-primary); box-shadow: 0 2px 12px rgba(99,102,241,0.3); }
+
+.btn-bookmark.is-active {
+    color: var(--accent-primary) !important;
+}
+.btn-bookmark.is-active svg,
+.btn-bookmark.is-active i {
+    fill: currentColor;
+}
 </style>
 
 
@@ -69,36 +77,39 @@ foreach ($dbReports as $r) {
     <!-- Header / Controls Bar -->
     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; flex-wrap:wrap; gap:16px;">
         <!-- Sector Filter Bar -->
-        <?php if (!empty($feedSecteurs)): 
-            $visibleSecteurs = array_slice($feedSecteurs, 0, 4);
-        ?>
         <div class="feed-filter-bar" id="feed-filter-bar" style="margin-bottom:0;">
             <span style="font-size:13px; font-weight:600; color:var(--text-secondary);">
-                <i data-lucide="tag" style="width:14px;height:14px;display:inline;vertical-align:-2px;"></i> Secteur :
+                <i data-lucide="filter" style="width:14px;height:14px;display:inline-block;vertical-align:-2px;"></i> Filtrer :
             </span>
             <button class="feed-filter-btn active" onclick="filterFeed('all', this)">Tous</button>
-            <?php foreach ($visibleSecteurs as $sec): ?>
-            <button class="feed-filter-btn" onclick="filterFeed('<?php echo htmlspecialchars(addslashes($sec)); ?>', this)"><?php echo htmlspecialchars($sec); ?></button>
-            <?php endforeach; ?>
+            <button class="feed-filter-btn" onclick="filterFavorites(this)" id="btn-filter-favorites">
+                <i data-lucide="bookmark" style="width:14px;height:14px;display:inline-block;vertical-align:-2px;margin-right:2px;"></i> Favoris
+            </button>
             
-            <?php if (count($feedSecteurs) > 4): ?>
-            <div style="position:relative; display:inline-block;" id="more-sectors-dropdown-container">
-                <button class="feed-filter-btn" onclick="toggleMoreSectors()" id="btn-more-sectors">
-                    <i data-lucide="more-horizontal" style="width:14px;height:14px;vertical-align:-2px;"></i> Voir plus
-                </button>
-                <!-- Dropdown Menu -->
-                <div id="more-sectors-dropdown" style="display:none; position:absolute; top:100%; left:0; margin-top:8px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px; padding:12px; width:250px; box-shadow:0 10px 25px rgba(0,0,0,0.1); z-index:100;">
-                    <input type="text" id="sector-search" placeholder="Rechercher un secteur..." class="input" style="width:100%; margin-bottom:12px; font-size:13px; padding:8px 12px; box-sizing: border-box;" onkeyup="searchSectors()">
-                    <div style="max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;" id="sector-list-container">
-                        <?php foreach ($feedSecteurs as $sec): ?>
-                        <button class="feed-filter-btn" style="text-align:left; border:none; border-radius:6px; background:transparent; width:100%; justify-content:flex-start;" onclick="filterFeed('<?php echo htmlspecialchars(addslashes($sec)); ?>', this, true)"><?php echo htmlspecialchars($sec); ?></button>
-                        <?php endforeach; ?>
+            <?php if (!empty($feedSecteurs)): 
+                $visibleSecteurs = array_slice($feedSecteurs, 0, 4);
+                foreach ($visibleSecteurs as $sec): ?>
+                <button class="feed-filter-btn" onclick="filterFeed('<?php echo htmlspecialchars(addslashes($sec)); ?>', this)"><?php echo htmlspecialchars($sec); ?></button>
+                <?php endforeach; ?>
+                
+                <?php if (count($feedSecteurs) > 4): ?>
+                <div style="position:relative; display:inline-block;" id="more-sectors-dropdown-container">
+                    <button class="feed-filter-btn" onclick="toggleMoreSectors()" id="btn-more-sectors">
+                        <i data-lucide="more-horizontal" style="width:14px;height:14px;vertical-align:-2px;"></i> Plus
+                    </button>
+                    <!-- Dropdown Menu -->
+                    <div id="more-sectors-dropdown" style="display:none; position:absolute; top:100%; left:0; margin-top:8px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px; padding:12px; width:250px; box-shadow:0 10px 25px rgba(0,0,0,0.1); z-index:100;">
+                        <input type="text" id="sector-search" placeholder="Rechercher un secteur..." class="input" style="width:100%; margin-bottom:12px; font-size:13px; padding:8px 12px; box-sizing: border-box;" onkeyup="searchSectors()">
+                        <div style="max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;" id="sector-list-container">
+                            <?php foreach ($feedSecteurs as $sec): ?>
+                            <button class="feed-filter-btn" style="text-align:left; border:none; border-radius:6px; background:transparent; width:100%; justify-content:flex-start;" onclick="filterFeed('<?php echo htmlspecialchars(addslashes($sec)); ?>', this, true)"><?php echo htmlspecialchars($sec); ?></button>
+                            <?php endforeach; ?>
+                        </div>
                     </div>
                 </div>
-            </div>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
-        <?php endif; ?>
 
         <!-- Sorting -->
         <div style="display:flex; align-items:center; gap:8px;">
@@ -115,7 +126,7 @@ foreach ($dbReports as $r) {
     <?php if (count($dbReports) > 0): $featured = $dbReports[0];
       $featuredSecteurs = htmlspecialchars($featured['secteur_principal'] ?? '');
     ?>
-    <article class="report-card report-card--featured animate-on-scroll feed-card" id="report-featured" data-secteurs="<?php echo $featuredSecteurs; ?>" data-salaire="<?php echo floatval($featured['salaire_moyen_global'] ?? 0); ?>">
+    <article class="report-card report-card--featured animate-on-scroll feed-card" id="report-featured" data-report-id="<?php echo $featured['id_rapport_marche']; ?>" data-secteurs="<?php echo $featuredSecteurs; ?>" data-salaire="<?php echo floatval($featured['salaire_moyen_global'] ?? 0); ?>">
       <div class="report-card__header">
         <div class="report-card__header-content">
           <h2 class="report-card__title"><?php echo htmlspecialchars($featured['titre']); ?></h2>
@@ -147,8 +158,8 @@ foreach ($dbReports as $r) {
         </a>
           <button class="btn btn-sm btn-secondary" onclick="if(window.AIAgentUtils && window.AIAgentUtils.triggerFlashBriefing) window.AIAgentUtils.triggerFlashBriefing(<?php echo $featured['id_rapport_marche']; ?>, '<?php echo htmlspecialchars(addslashes($featured['titre']), ENT_QUOTES, 'UTF-8'); ?>'); else alert('L\'agent IA n\'est pas disponible.')" title="Briefing Audio"><i data-lucide="mic" style="width:14px;height:14px;"></i> Écouter</button>
         <div class="flex gap-2">
-          <button class="btn btn-sm btn-ghost"><i data-lucide="bookmark" style="width:14px;height:14px;"></i></button>
-          <button class="btn btn-sm btn-ghost"><i data-lucide="share-2" style="width:14px;height:14px;"></i></button>
+          <button class="btn btn-sm btn-ghost btn-bookmark" data-report-id="<?php echo $featured['id_rapport_marche']; ?>" onclick="toggleBookmarkReport(<?php echo $featured['id_rapport_marche']; ?>, this)" title="Sauvegarder"><i data-lucide="bookmark" style="width:14px;height:14px;"></i></button>
+          <button class="btn btn-sm btn-ghost btn-share" onclick="shareReport(<?php echo $featured['id_rapport_marche']; ?>, '<?php echo htmlspecialchars(addslashes($featured['titre']), ENT_QUOTES, 'UTF-8'); ?>')" title="Partager"><i data-lucide="share-2" style="width:14px;height:14px;"></i></button>
         </div>
       </div>
     </article>
@@ -160,7 +171,7 @@ foreach ($dbReports as $r) {
       $r = $dbReports[$i];
       $rSecteurs = htmlspecialchars($r['secteur_principal'] ?? '');
     ?>
-    <article class="report-card animate-on-scroll feed-card" id="report-<?php echo $i; ?>" data-secteurs="<?php echo $rSecteurs; ?>" data-salaire="<?php echo floatval($r['salaire_moyen_global'] ?? 0); ?>">
+    <article class="report-card animate-on-scroll feed-card" id="report-<?php echo $i; ?>" data-report-id="<?php echo $r['id_rapport_marche']; ?>" data-secteurs="<?php echo $rSecteurs; ?>" data-salaire="<?php echo floatval($r['salaire_moyen_global'] ?? 0); ?>">
       <div class="report-card__header">
         <div class="report-card__header-content">
           <h3 class="report-card__title"><?php echo htmlspecialchars($r['titre']); ?></h3>
@@ -190,8 +201,8 @@ foreach ($dbReports as $r) {
         </a>
           <button class="btn btn-sm btn-ghost" onclick="if(window.AIAgentUtils && window.AIAgentUtils.triggerFlashBriefing) window.AIAgentUtils.triggerFlashBriefing(<?php echo $r['id_rapport_marche']; ?>, '<?php echo htmlspecialchars(addslashes($r['titre']), ENT_QUOTES, 'UTF-8'); ?>'); else alert('L\'agent IA n\'est pas disponible.')" title="Briefing Audio"><i data-lucide="mic" style="width:14px;height:14px;color:var(--accent-primary);"></i> Écouter</button>
         <div class="flex gap-2">
-          <button class="btn btn-sm btn-ghost"><i data-lucide="bookmark" style="width:14px;height:14px;"></i></button>
-          <button class="btn btn-sm btn-ghost"><i data-lucide="share-2" style="width:14px;height:14px;"></i></button>
+          <button class="btn btn-sm btn-ghost btn-bookmark" data-report-id="<?php echo $r['id_rapport_marche']; ?>" onclick="toggleBookmarkReport(<?php echo $r['id_rapport_marche']; ?>, this)" title="Sauvegarder"><i data-lucide="bookmark" style="width:14px;height:14px;"></i></button>
+          <button class="btn btn-sm btn-ghost btn-share" onclick="shareReport(<?php echo $r['id_rapport_marche']; ?>, '<?php echo htmlspecialchars(addslashes($r['titre']), ENT_QUOTES, 'UTF-8'); ?>')" title="Partager"><i data-lucide="share-2" style="width:14px;height:14px;"></i></button>
         </div>
       </div>
     </article>
@@ -370,8 +381,14 @@ function filterFeed(sector, btnEl, isDropdown = false) {
             btnEl.style.background = 'var(--bg-hover)';
             btnEl.style.color = 'var(--text-primary)';
             // Highlight the "Voir plus" button
-            document.getElementById('btn-more-sectors').classList.add('active');
+            const btnMore = document.getElementById('btn-more-sectors');
+            if (btnMore) btnMore.classList.add('active');
         }
+    }
+
+    const noFavsMsg = document.getElementById('no-favorites-message');
+    if (noFavsMsg) {
+        noFavsMsg.style.display = 'none';
     }
 
     const cards = document.querySelectorAll('.feed-card');
@@ -385,7 +402,8 @@ function filterFeed(sector, btnEl, isDropdown = false) {
     });
 
     if (isDropdown) {
-        document.getElementById('more-sectors-dropdown').style.display = 'none';
+        const dropdown = document.getElementById('more-sectors-dropdown');
+        if (dropdown) dropdown.style.display = 'none';
     }
 }
 
@@ -602,4 +620,177 @@ function openARModal() {
 function closeARModal() {
     document.getElementById('ar-modal').style.display = 'none';
 }
+
+// Bookmark & Share functionality
+function toggleBookmarkReport(reportId, btnEl) {
+    let bookmarks = JSON.parse(localStorage.getItem('aptus_bookmarked_reports') || '[]');
+    const index = bookmarks.indexOf(reportId);
+    let isBookmarked = false;
+    
+    if (index === -1) {
+        bookmarks.push(reportId);
+        isBookmarked = true;
+    } else {
+        bookmarks.splice(index, 1);
+    }
+    localStorage.setItem('aptus_bookmarked_reports', JSON.stringify(bookmarks));
+    
+    // Update active class on all buttons of this report
+    document.querySelectorAll(`.btn-bookmark[data-report-id="${reportId}"]`).forEach(btn => {
+        if (isBookmarked) {
+            btn.classList.add('is-active');
+        } else {
+            btn.classList.remove('is-active');
+        }
+    });
+
+    // Real-time update if on favorites filter page
+    const activeFilter = document.querySelector('.feed-filter-btn.active');
+    if (activeFilter && activeFilter.id === 'btn-filter-favorites' && !isBookmarked) {
+        document.querySelectorAll(`.feed-card[data-report-id="${reportId}"]`).forEach(card => {
+            card.style.display = 'none';
+        });
+        
+        const visibleCards = Array.from(document.querySelectorAll('.feed-card')).filter(card => card.style.display !== 'none');
+        if (visibleCards.length === 0) {
+            const container = document.getElementById('feed-cards-container');
+            let noFavsMsg = document.getElementById('no-favorites-message');
+            if (!noFavsMsg) {
+                noFavsMsg = document.createElement('div');
+                noFavsMsg.id = 'no-favorites-message';
+                noFavsMsg.style.textAlign = 'center';
+                noFavsMsg.style.padding = '40px 20px';
+                noFavsMsg.style.color = 'var(--text-secondary)';
+                noFavsMsg.innerHTML = `
+                    <i data-lucide="bookmark" style="width:48px;height:48px;margin:0 auto 12px auto;opacity:0.3;"></i>
+                    <p style="font-weight:600;">Aucun favori enregistré</p>
+                    <p style="font-size:13px;opacity:0.7;margin-top:4px;">Cliquez sur l'icône marque-page de n'importe quel rapport pour le sauvegarder.</p>
+                `;
+                container.appendChild(noFavsMsg);
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            } else {
+                noFavsMsg.style.display = '';
+            }
+        }
+    }
+
+    if (typeof Toast !== 'undefined') {
+        Toast.fire({
+            icon: 'success',
+            title: isBookmarked ? 'Rapport enregistré dans vos favoris !' : 'Rapport retiré de vos favoris.'
+        });
+    }
+}
+
+function shareReport(reportId, reportTitle) {
+    const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+    const shareUrl = window.location.protocol + '//' + window.location.host + basePath + '/veille_details.php?id=' + reportId;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: reportTitle,
+            text: `Consultez ce rapport de veille sur Aptus : ${reportTitle}`,
+            url: shareUrl
+        }).catch(err => {
+            console.log('Error sharing:', err);
+        });
+    } else {
+        // Fallback to clipboard
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            if (typeof Toast !== 'undefined') {
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Lien du rapport copié dans le presse-papiers !'
+                });
+            }
+        }).catch(err => {
+            console.error('Could not copy link: ', err);
+            // Fallback for older browsers
+            const textArea = document.createElement("textarea");
+            textArea.value = shareUrl;
+            textArea.style.position = 'fixed';
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                if (typeof Toast !== 'undefined') {
+                    Toast.fire({
+                        icon: 'success',
+                        title: 'Lien du rapport copié dans le presse-papiers !'
+                    });
+                }
+            } catch (copyErr) {
+                alert('Impossible de copier automatiquement le lien. Copiez-le manuellement: ' + shareUrl);
+            }
+            document.body.removeChild(textArea);
+        });
+    }
+}
+
+function filterFavorites(btnEl) {
+    // Unset active from all buttons
+    document.querySelectorAll('.feed-filter-btn').forEach(b => {
+        b.classList.remove('active');
+        if (b.closest('#sector-list-container')) {
+            b.style.background = 'transparent';
+            b.style.color = 'var(--text-secondary)';
+        }
+    });
+
+    // Set active
+    if (btnEl) {
+        btnEl.classList.add('active');
+    }
+
+    const bookmarks = JSON.parse(localStorage.getItem('aptus_bookmarked_reports') || '[]');
+    const cards = document.querySelectorAll('.feed-card');
+    let visibleCount = 0;
+    
+    cards.forEach(card => {
+        const reportId = parseInt(card.dataset.reportId) || 0;
+        if (bookmarks.includes(reportId)) {
+            card.style.display = '';
+            visibleCount++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    // Handle "no favorites" case gracefully
+    const container = document.getElementById('feed-cards-container');
+    let noFavsMsg = document.getElementById('no-favorites-message');
+    
+    if (visibleCount === 0) {
+        if (!noFavsMsg) {
+            noFavsMsg = document.createElement('div');
+            noFavsMsg.id = 'no-favorites-message';
+            noFavsMsg.style.textAlign = 'center';
+            noFavsMsg.style.padding = '40px 20px';
+            noFavsMsg.style.color = 'var(--text-secondary)';
+            noFavsMsg.innerHTML = `
+                <i data-lucide="bookmark" style="width:48px;height:48px;margin:0 auto 12px auto;opacity:0.3;"></i>
+                <p style="font-weight:600;">Aucun favori enregistré</p>
+                <p style="font-size:13px;opacity:0.7;margin-top:4px;">Cliquez sur l'icône marque-page de n'importe quel rapport pour le sauvegarder.</p>
+            `;
+            container.appendChild(noFavsMsg);
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        } else {
+            noFavsMsg.style.display = '';
+        }
+    } else {
+        if (noFavsMsg) {
+            noFavsMsg.style.display = 'none';
+        }
+    }
+}
+
+// Restore bookmarked state on load
+document.addEventListener('DOMContentLoaded', function() {
+    let bookmarks = JSON.parse(localStorage.getItem('aptus_bookmarked_reports') || '[]');
+    bookmarks.forEach(reportId => {
+        document.querySelectorAll(`.btn-bookmark[data-report-id="${reportId}"]`).forEach(btn => {
+            btn.classList.add('is-active');
+        });
+    });
+});
 </script>

@@ -172,9 +172,9 @@ class candidatureC {
 
             require_once __DIR__ . '/NotificationController.php';
             if ($nouveau_statut === 'Accepté') {
-                NotificationController::creerNotification($cand['id_candidat'], 'certif_ready', $message, 'my_applications.php', 'check-circle', 'URGENT');
+                NotificationController::creerNotification($cand['id_candidat'], 'candidature_accept', $message, 'my_applications.php', 'check-circle', 'URGENT');
             } else {
-                NotificationController::creerNotification($cand['id_candidat'], 'default', $message, 'my_applications.php', 'x-circle', 'NORMAL');
+                NotificationController::creerNotification($cand['id_candidat'], 'candidature_reject', $message, 'my_applications.php', 'x-circle', 'NORMAL');
             }
 
             // 4. SI CHANGEMENT DE STATUT : Envoyer le mail via Brevo 

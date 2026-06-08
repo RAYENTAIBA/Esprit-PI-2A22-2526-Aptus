@@ -24,7 +24,7 @@ $cv = [
     'nomComplet'  => '', 'email' => '', 'telephone' => '', 'adresse' => '',
     'titrePoste'  => '', 'resume' => '', 'experience' => '',
     'competences' => '', 'langues' => '', 'formation' => '',
-    'urlPhoto'    => '/aptus_first_official_version/view/assets/img/rayen.jpg', 'couleurTheme' => '#6B34A3'
+    'urlPhoto'    => '', 'couleurTheme' => '#6B34A3'
 ];
 
 if ($cv_id) {
@@ -49,7 +49,7 @@ if ($cv_id) {
             'competences' => $row['competences'],
             'langues'     => $row['langues'],
             'formation'   => $row['formation'],
-            'urlPhoto'    => !empty($row['urlPhoto']) ? $row['urlPhoto'] : '/aptus_first_official_version/view/assets/img/rayen.jpg',
+            'urlPhoto'    => $row['urlPhoto'] ?? '',
             'couleurTheme'=> $row['couleurTheme'] ?? '#6B34A3',
         ]);
         $template_id = $row['id_template'];
@@ -1291,9 +1291,13 @@ $receiverScript = '
                     setVal("#preview-infoContact, [data-cv-zone=\"contact\"], .contact-info, .cv-contact", clean, true);
                 } else if (d.field === "photo") {
                     const pi = document.querySelectorAll("#preview-photo, .cv-photo img, .profile-img, #profile-pic, [data-cv-zone=\"photo\"] img");
-                    const imgUrl = d.value || "/aptus_first_official_version/view/assets/img/rayen.jpg";
-                    pi.forEach(i => { i.src = imgUrl; i.style.display = "block"; });
-                    document.querySelectorAll("#photo-text, .photo-text").forEach(t => t.style.display = "none");
+                    if (d.value && d.value.trim() !== "") {
+                        pi.forEach(i => { i.src = d.value; i.style.display = "block"; });
+                        document.querySelectorAll("#photo-text, .photo-text").forEach(t => t.style.display = "none");
+                    } else {
+                        pi.forEach(i => { i.src = ""; i.style.display = "none"; });
+                        document.querySelectorAll("#photo-text, .photo-text").forEach(t => t.style.display = "block");
+                    }
                 }
             } else if (e.data.type === "cv-labels") {
                 const labels = e.data.value;
@@ -1592,7 +1596,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-save').addEventListener('click', saveCV);
     document.getElementById('color-picker').addEventListener('input', (e) => {
         const ifrm = document.getElementById('template-preview-frame');
-        if(ifrm && ifrm.contentDocument) ifrm.contentDocument.documentElement.style.setProperty('--cv-accent', e.target.value);
+        if (ifrm && ifrm.contentDocument && ifrm.contentDocument.documentElement) {
+            ifrm.contentDocument.documentElement.style.setProperty('--cv-accent', e.target.value);
+        }
     });
 
     // Photo Upload
@@ -1994,7 +2000,7 @@ function syncAllData() {
     // Sync Photo
     const photo = document.getElementById('photo-b64').value;
     const ifrm = document.getElementById('template-preview-frame');
-    if (ifrm && ifrm.contentWindow && photo) {
+    if (ifrm && ifrm.contentWindow) {
         ifrm.contentWindow.postMessage({ type: 'cv-update', field: 'photo', value: photo }, '*');
     }
     
@@ -2014,7 +2020,7 @@ function syncAllData() {
     
     // Sync Color
     const color = document.getElementById('color-picker').value;
-    if (ifrm && ifrm.contentDocument) {
+    if (ifrm && ifrm.contentDocument && ifrm.contentDocument.documentElement) {
         ifrm.contentDocument.documentElement.style.setProperty('--cv-accent', color);
     }
 }

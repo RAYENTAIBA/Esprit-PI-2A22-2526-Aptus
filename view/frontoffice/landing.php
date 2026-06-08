@@ -102,19 +102,19 @@
         <div class="hero__stats hero-stats-glass mt-5 text-high-contrast mb-4">
           <div class="hero__stat">
             <div class="hero__stat-value counter accent-font" data-target="12450">0</div>
-            <div class="hero__stat-label">Offres</div>
+            <div class="hero__stat-label" style="color: var(--landing-text-muted, #6B7280) !important; font-size: 0.75rem !important; font-weight: 700 !important; letter-spacing: 0.05em !important; margin-top: 0.5rem !important; display: block !important;">OFFRES</div>
           </div>
           <div class="hero__stat">
             <div class="hero__stat-value counter accent-font" data-target="845">0</div>
-            <div class="hero__stat-label">Entreprises</div>
+            <div class="hero__stat-label" style="color: var(--landing-text-muted, #6B7280) !important; font-size: 0.75rem !important; font-weight: 700 !important; letter-spacing: 0.05em !important; margin-top: 0.5rem !important; display: block !important;">ENTREPRISES</div>
           </div>
           <div class="hero__stat">
             <div class="hero__stat-value counter accent-font" data-target="34102">0</div>
-            <div class="hero__stat-label">CVs créés</div>
+            <div class="hero__stat-label" style="color: var(--landing-text-muted, #6B7280) !important; font-size: 0.75rem !important; font-weight: 700 !important; letter-spacing: 0.05em !important; margin-top: 0.5rem !important; display: block !important;">CVS CRÉÉS</div>
           </div>
           <div class="hero__stat">
             <div class="hero__stat-value accent-font" id="stat-rate">94%</div>
-            <div class="hero__stat-label">Satisfaction</div>
+            <div class="hero__stat-label" style="color: var(--landing-text-muted, #6B7280) !important; font-size: 0.75rem !important; font-weight: 700 !important; letter-spacing: 0.05em !important; margin-top: 0.5rem !important; display: block !important;">SATISFACTION</div>
           </div>
         </div>
       </div>

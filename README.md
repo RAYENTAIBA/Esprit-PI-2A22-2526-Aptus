@@ -1,10 +1,7 @@
-# Esprit--PI---2A22--2526--Aptus-
-Aptus | AI-Powered Career Ecosystem Architected and developed a comprehensive, AI-driven career platform consisting of five integrated modules to guide candidates through their professional lifecycle.
-
 # Aptus
 
 ## Description
-Aptus est une plateforme Web intelligente d'aide à l'insertion professionnelle et de recrutement, spécialement conçue pour connecter les candidats (étudiants), les entreprises et les tuteurs. Elle intègre des fonctionnalités avancées d'analyse de CV par IA, d'autofill, de suggestions de compétences, et un tableau de bord complet pour le suivi des candidatures.
+Aptus est une plateforme Web intelligente d'aide à l'insertion professionnelle et de recrutement, spécialement conçue pour connecter les candidats , les entreprises et les tuteurs. Elle intègre des fonctionnalités avancées d'analyse de CV par IA, d'autofill, de suggestions de compétences, et un tableau de bord complet pour le suivi des candidatures.
 
 ## Technologies utilisées
 - **Frontend** : HTML5, CSS3, JavaScript (ES6+)

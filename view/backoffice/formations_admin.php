@@ -784,7 +784,19 @@ if (!isset($content)) {
         }
         document.getElementById('modal-creneau').style.display = 'flex';
     }
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModals(); });
+
+    function closeModal() {
+        const modalCreneau = document.getElementById('modal-creneau');
+        const modalAction = document.getElementById('modal-creneau-action');
+        if (modalCreneau) modalCreneau.style.display = 'none';
+        if (modalAction) modalAction.style.display = 'none';
+    }
+    document.addEventListener('keydown', e => { 
+        if (e.key === 'Escape') {
+            closeModals(); 
+            closeModal();
+        } 
+    });
 
 
     // ── SOUMETTRE UN CRÉNEAU ──────────────────────────────────────

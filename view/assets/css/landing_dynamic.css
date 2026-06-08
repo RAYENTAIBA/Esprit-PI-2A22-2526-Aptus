@@ -719,6 +719,7 @@ body.landing-page-body {
 }
 .hero__stat-value { font-weight: 800; font-size: 2.2rem; background: linear-gradient(to right, var(--landing-text), #4f46e5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 [data-theme="dark"] .hero__stat-value { background: linear-gradient(to right, #ffffff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.hero__stat-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; color: var(--landing-text-muted) !important; margin-top: 0.5rem; }
 
 /* LEADERBOARD AESTHETIC */
 .leaderboard-aesthetic {

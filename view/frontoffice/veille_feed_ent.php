@@ -45,6 +45,14 @@ foreach ($dbReports as $r) {
 }
 .feed-filter-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
 .feed-filter-btn.active { background: var(--accent-primary); color: #fff; border-color: var(--accent-primary); box-shadow: 0 2px 12px rgba(99,102,241,0.3); }
+
+.btn-bookmark.is-active {
+    color: var(--accent-primary) !important;
+}
+.btn-bookmark.is-active svg,
+.btn-bookmark.is-active i {
+    fill: currentColor;
+}
 </style>
 
 
@@ -147,8 +155,8 @@ foreach ($dbReports as $r) {
         </a>
           <button class="btn btn-sm btn-secondary" onclick="if(window.AIAgentUtils && window.AIAgentUtils.triggerFlashBriefing) window.AIAgentUtils.triggerFlashBriefing(<?php echo $featured['id_rapport_marche']; ?>, '<?php echo htmlspecialchars(addslashes($featured['titre']), ENT_QUOTES, 'UTF-8'); ?>'); else alert('L\'agent IA n\'est pas disponible.')" title="Briefing Audio"><i data-lucide="mic" style="width:14px;height:14px;"></i> Écouter</button>
         <div class="flex gap-2">
-          <button class="btn btn-sm btn-ghost"><i data-lucide="bookmark" style="width:14px;height:14px;"></i></button>
-          <button class="btn btn-sm btn-ghost"><i data-lucide="share-2" style="width:14px;height:14px;"></i></button>
+          <button class="btn btn-sm btn-ghost btn-bookmark" data-report-id="<?php echo $featured['id_rapport_marche']; ?>" onclick="toggleBookmarkReport(<?php echo $featured['id_rapport_marche']; ?>, this)" title="Sauvegarder"><i data-lucide="bookmark" style="width:14px;height:14px;"></i></button>
+          <button class="btn btn-sm btn-ghost btn-share" onclick="shareReport(<?php echo $featured['id_rapport_marche']; ?>, '<?php echo htmlspecialchars(addslashes($featured['titre']), ENT_QUOTES, 'UTF-8'); ?>')" title="Partager"><i data-lucide="share-2" style="width:14px;height:14px;"></i></button>
         </div>
       </div>
     </article>
@@ -190,8 +198,8 @@ foreach ($dbReports as $r) {
         </a>
           <button class="btn btn-sm btn-ghost" onclick="if(window.AIAgentUtils && window.AIAgentUtils.triggerFlashBriefing) window.AIAgentUtils.triggerFlashBriefing(<?php echo $r['id_rapport_marche']; ?>, '<?php echo htmlspecialchars(addslashes($r['titre']), ENT_QUOTES, 'UTF-8'); ?>'); else alert('L\'agent IA n\'est pas disponible.')" title="Briefing Audio"><i data-lucide="mic" style="width:14px;height:14px;color:var(--accent-primary);"></i> Écouter</button>
         <div class="flex gap-2">
-          <button class="btn btn-sm btn-ghost"><i data-lucide="bookmark" style="width:14px;height:14px;"></i></button>
-          <button class="btn btn-sm btn-ghost"><i data-lucide="share-2" style="width:14px;height:14px;"></i></button>
+          <button class="btn btn-sm btn-ghost btn-bookmark" data-report-id="<?php echo $r['id_rapport_marche']; ?>" onclick="toggleBookmarkReport(<?php echo $r['id_rapport_marche']; ?>, this)" title="Sauvegarder"><i data-lucide="bookmark" style="width:14px;height:14px;"></i></button>
+          <button class="btn btn-sm btn-ghost btn-share" onclick="shareReport(<?php echo $r['id_rapport_marche']; ?>, '<?php echo htmlspecialchars(addslashes($r['titre']), ENT_QUOTES, 'UTF-8'); ?>')" title="Partager"><i data-lucide="share-2" style="width:14px;height:14px;"></i></button>
         </div>
       </div>
     </article>
@@ -602,4 +610,91 @@ function openARModal() {
 function closeARModal() {
     document.getElementById('ar-modal').style.display = 'none';
 }
+
+// Bookmark & Share functionality
+function toggleBookmarkReport(reportId, btnEl) {
+    let bookmarks = JSON.parse(localStorage.getItem('aptus_bookmarked_reports') || '[]');
+    const index = bookmarks.indexOf(reportId);
+    let isBookmarked = false;
+    
+    if (index === -1) {
+        bookmarks.push(reportId);
+        isBookmarked = true;
+    } else {
+        bookmarks.splice(index, 1);
+    }
+    localStorage.setItem('aptus_bookmarked_reports', JSON.stringify(bookmarks));
+    
+    // Update active class on all buttons of this report
+    document.querySelectorAll(`.btn-bookmark[data-report-id="${reportId}"]`).forEach(btn => {
+        if (isBookmarked) {
+            btn.classList.add('is-active');
+        } else {
+            btn.classList.remove('is-active');
+        }
+    });
+
+    if (typeof Toast !== 'undefined') {
+        Toast.fire({
+            icon: 'success',
+            title: isBookmarked ? 'Rapport enregistré dans vos favoris !' : 'Rapport retiré de vos favoris.'
+        });
+    }
+}
+
+// Share Report
+function shareReport(reportId, reportTitle) {
+    const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+    const shareUrl = window.location.protocol + '//' + window.location.host + basePath + '/veille_details.php?id=' + reportId;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: reportTitle,
+            text: `Consultez ce rapport de veille sur Aptus : ${reportTitle}`,
+            url: shareUrl
+        }).catch(err => {
+            console.log('Error sharing:', err);
+        });
+    } else {
+        // Fallback to clipboard
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            if (typeof Toast !== 'undefined') {
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Lien du rapport copié dans le presse-papiers !'
+                });
+            }
+        }).catch(err => {
+            console.error('Could not copy link: ', err);
+            // Fallback for older browsers
+            const textArea = document.createElement("textarea");
+            textArea.value = shareUrl;
+            textArea.style.position = 'fixed';
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                if (typeof Toast !== 'undefined') {
+                    Toast.fire({
+                        icon: 'success',
+                        title: 'Lien du rapport copié dans le presse-papiers !'
+                    });
+                }
+            } catch (copyErr) {
+                alert('Impossible de copier automatiquement le lien. Copiez-le manuellement: ' + shareUrl);
+            }
+            document.body.removeChild(textArea);
+        });
+    }
+}
+
+// Restore bookmarked state on load
+document.addEventListener('DOMContentLoaded', function() {
+    let bookmarks = JSON.parse(localStorage.getItem('aptus_bookmarked_reports') || '[]');
+    bookmarks.forEach(reportId => {
+        document.querySelectorAll(`.btn-bookmark[data-report-id="${reportId}"]`).forEach(btn => {
+            btn.classList.add('is-active');
+        });
+    });
+});
 </script>

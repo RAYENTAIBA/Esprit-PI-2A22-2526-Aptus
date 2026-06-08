@@ -548,6 +548,8 @@ $_lp_r = $_lp_radiusMap[$_lp_radius] ?? $_lp_radiusMap['medium'];
         peer_request : 'users',
         new_message  : 'message-circle',
         ai_reply     : 'cpu',
+        candidature_accept : 'check-circle',
+        candidature_reject : 'x-circle',
         default      : 'bell'
     };
     const NOTIF_LABELS = {
@@ -555,6 +557,8 @@ $_lp_r = $_lp_radiusMap[$_lp_radius] ?? $_lp_radiusMap['medium'];
         peer_request : '🤝 Peer Learning',
         new_message  : '💬 Message',
         ai_reply     : '🤖 IA',
+        candidature_accept : '💼 Candidature Retenue',
+        candidature_reject : '💼 Candidature Refusée',
         default      : '🔔 Notification'
     };
 
@@ -718,6 +722,14 @@ $_lp_r = $_lp_radiusMap[$_lp_radius] ?? $_lp_radiusMap['medium'];
             let typeKey = n.type.replace('URGENT_', '').replace('SILENT_', '');
             const isUrgent = n.type.startsWith('URGENT_');
             const isRead = n.is_read == 1;
+
+            // Map existing DB entries dynamically based on message contents
+            if (typeKey === 'certif_ready' && (n.message.includes('candidature') || n.message.includes('poste') || n.message.includes('retenue'))) {
+                typeKey = 'candidature_accept';
+            }
+            if (typeKey === 'default' && (n.message.includes('candidature') || n.message.includes('refusée') || n.message.includes('retenue') || n.message.includes('pas été retenue'))) {
+                typeKey = 'candidature_reject';
+            }
             
             typeKey  = NOTIF_ICONS[typeKey] ? typeKey : 'default';
             const icon     = NOTIF_ICONS[typeKey] || 'bell';
@@ -728,16 +740,33 @@ $_lp_r = $_lp_radiusMap[$_lp_radius] ?? $_lp_radiusMap['medium'];
                 href = '/aptus_first_official_version/view/frontoffice/' + href;
             }
             
-            const urgentStyle = isUrgent ? 'border-left: 4px solid var(--accent-tertiary); background: var(--accent-tertiary-light); opacity: 0.95;' : '';
+            let cardStyle = '';
+            let iconStyle = '';
+            let typeLabelStyle = '';
+
+            if (typeKey === 'candidature_accept') {
+                cardStyle = 'border-left: 4px solid #10b981 !important; background: rgba(16, 185, 129, 0.08) !important;';
+                iconStyle = 'background: #10b981 !important; color: #fff !important;';
+                typeLabelStyle = 'color: #10b981 !important; font-weight: 800 !important;';
+            } else if (typeKey === 'candidature_reject') {
+                cardStyle = 'border-left: 4px solid #ef4444 !important; background: rgba(239, 68, 68, 0.08) !important;';
+                iconStyle = 'background: #ef4444 !important; color: #fff !important;';
+                typeLabelStyle = 'color: #ef4444 !important; font-weight: 800 !important;';
+            } else {
+                cardStyle = isUrgent ? 'border-left: 4px solid var(--accent-tertiary); background: var(--accent-tertiary-light); opacity: 0.95;' : '';
+                iconStyle = isUrgent ? 'background:#ef4444; color:#fff;' : '';
+                typeLabelStyle = isUrgent ? 'color:#ef4444; font-weight:900;' : '';
+            }
+            
             const readClass = isRead ? '' : 'unread';
 
             html += `
-            <a href="${href}" class="notif-item ${readClass}" onclick="markOneRead(${n.id_notifs}, this)" style="${urgentStyle}">
-                <div class="notif-item__icon type-${typeKey}" ${isUrgent ? 'style="background:#ef4444; color:#fff;"' : ''}>
+            <a href="${href}" class="notif-item ${readClass}" onclick="markOneRead(${n.id_notifs}, this)" style="${cardStyle}">
+                <div class="notif-item__icon type-${typeKey}" style="${iconStyle}">
                     <i data-lucide="${icon}" style="width:18px;height:18px;"></i>
                 </div>
                 <div class="notif-item__body">
-                    <div class="notif-item__type" ${isUrgent ? 'style="color:#ef4444; font-weight:900;"' : ''}>${label}</div>
+                    <div class="notif-item__type" style="${typeLabelStyle}">${label}</div>
                     <div class="notif-item__msg">${n.message}</div>
                     <span class="notif-item__time">🕐 ${time}</span>
                 </div>

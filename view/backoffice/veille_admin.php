@@ -454,6 +454,127 @@ if (!isset($content)) {
 .image-upload-zone.has-image .image-upload-overlay {
   display: flex;
 }
+
+/* ── Aptus Toast Notifications ─────────────────── */
+#aptus-toast-container {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+.aptus-toast {
+  pointer-events: all;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 320px;
+  max-width: 420px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.35), 0 4px 16px rgba(0,0,0,0.2);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  animation: aptusToastIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  position: relative;
+  overflow: hidden;
+}
+[data-theme="light"] .aptus-toast {
+  background: rgba(255,255,255,0.92);
+  border-color: rgba(0,0,0,0.06);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.06);
+}
+[data-theme="dark"] .aptus-toast {
+  background: rgba(22, 25, 42, 0.95);
+}
+.aptus-toast::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: 14px 0 0 14px;
+}
+.aptus-toast.toast-success::before { background: #10b981; }
+.aptus-toast.toast-error::before   { background: #ef4444; }
+.aptus-toast.toast-warning::before { background: #f59e0b; }
+.aptus-toast.toast-info::before    { background: #6366f1; }
+.aptus-toast__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.toast-success .aptus-toast__icon { background: rgba(16,185,129,0.12); color: #10b981; }
+.toast-error   .aptus-toast__icon { background: rgba(239,68,68,0.12);  color: #ef4444; }
+.toast-warning .aptus-toast__icon { background: rgba(245,158,11,0.12); color: #f59e0b; }
+.toast-info    .aptus-toast__icon { background: rgba(99,102,241,0.12); color: #6366f1; }
+.aptus-toast__body {
+  flex: 1;
+  min-width: 0;
+}
+.aptus-toast__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary, #f1f5f9);
+  margin-bottom: 2px;
+}
+.aptus-toast__msg {
+  font-size: 13px;
+  color: var(--text-secondary, #94a3b8);
+  line-height: 1.45;
+  word-break: break-word;
+}
+.aptus-toast__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-tertiary, #64748b);
+  padding: 2px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  transition: color 0.2s, background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.aptus-toast__close:hover {
+  color: var(--text-primary, #f1f5f9);
+  background: rgba(255,255,255,0.06);
+}
+.aptus-toast__progress {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+  transform-origin: left;
+  animation: aptusToastProgress 4s linear forwards;
+  border-radius: 0 0 14px 14px;
+}
+.toast-success .aptus-toast__progress { background: #10b981; }
+.toast-error   .aptus-toast__progress { background: #ef4444; }
+.toast-warning .aptus-toast__progress { background: #f59e0b; }
+.toast-info    .aptus-toast__progress { background: #6366f1; }
+@keyframes aptusToastIn {
+  from { opacity: 0; transform: translateX(100%) scale(0.95); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes aptusToastOut {
+  from { opacity: 1; transform: translateX(0) scale(1); max-height: 200px; margin-bottom: 0; }
+  to   { opacity: 0; transform: translateX(110%) scale(0.9); max-height: 0; margin-bottom: -12px; }
+}
+.aptus-toast.removing {
+  animation: aptusToastOut 0.3s ease forwards;
+}
+@keyframes aptusToastProgress {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
 </style>
 
 <div class="back-page-header">
@@ -690,6 +811,9 @@ if(isset($_GET['success']) && isset($msgs[$_GET['success']])):
 <!-- ============================================== -->
 <!-- MODALS -->
 <!-- ============================================== -->
+
+<!-- Aptus Toast Container -->
+<div id="aptus-toast-container"></div>
 
 <!-- 1. Modal Rapport -->
 <div class="modal-overlay" id="modal-rapport">
@@ -1301,7 +1425,7 @@ function openDonneeModal(type, data = null) {
 function previewImage(input) {
     if (input.files && input.files[0]) {
         if (input.files[0].size > 5 * 1024 * 1024) {
-            alert("L'image est trop lourde (max 5 Mo)");
+            aptusAlert("L'image est trop lourde (max 5 Mo)", 'warning');
             input.value = "";
             return;
         }
@@ -1819,7 +1943,7 @@ async function generateAIDraft() {
     };
 
     if (!metadata.titre || !metadata.secteur) {
-        alert("Veuillez remplir au moins le titre et le secteur pour générer un brouillon.");
+        aptusAlert("Veuillez remplir au moins le titre et le secteur pour générer un brouillon.", 'warning');
         return;
     }
 
@@ -1839,11 +1963,11 @@ async function generateAIDraft() {
             quill.root.innerHTML = result.draft;
             updateLivePreview();
         } else {
-            alert("Erreur IA: " + result.error);
+            aptusAlert("Erreur IA : " + result.error, 'error');
         }
     } catch (e) {
         console.error(e);
-        alert("Impossible de contacter l'assistant IA.");
+        aptusAlert("Impossible de contacter l'assistant IA.", 'error');
     } finally {
         btn.disabled = false;
         btn.innerHTML = originalContent;
@@ -1857,7 +1981,7 @@ async function scoutMarketData() {
     const query = queryInput.value.trim();
 
     if (!query) {
-        alert("Veuillez entrer une description ou des URLs.");
+        aptusAlert("Veuillez entrer une description ou des URLs.", 'warning');
         return;
     }
 
@@ -1891,13 +2015,13 @@ async function scoutMarketData() {
             }
 
             queryInput.value = '';
-            alert("Données du marché générées et extraites avec succès !");
+            aptusAlert("Données du marché générées et extraites avec succès !", 'success');
         } else {
-            alert("Scout Error: " + (result.error || "Impossible d'extraire les données."));
+            aptusAlert("Scout Error : " + (result.error || "Impossible d'extraire les données."), 'error');
         }
     } catch (e) {
         console.error(e);
-        alert("Erreur de connexion avec le service AI Scout.");
+        aptusAlert("Erreur de connexion avec le service AI Scout.", 'error');
     } finally {
         btn.disabled = false;
         btn.innerHTML = originalContent;
@@ -1938,11 +2062,11 @@ async function loadAIForecast(forceRefresh = false) {
             forecastCache[cacheKey] = result.forecast;
             renderForecastChart(result.forecast, chartEl, placeholder);
         } else {
-            alert("Erreur de prédiction: " + (result.error || "Réponse invalide de l'API."));
+            aptusAlert("Erreur de prédiction : " + (result.error || "Réponse invalide de l'API."), 'error');
         }
     } catch (e) {
         console.error(e);
-        alert("Erreur lors de la génération des prévisions.");
+        aptusAlert("Erreur lors de la génération des prévisions.", 'error');
     } finally {
         btn.disabled = false;
         btn.innerHTML = originalContent;
@@ -2124,6 +2248,46 @@ function openDeleteModal(actionName, idFieldName, idValue, message) {
     }, 10);
 
     if (window.lucide) lucide.createIcons();
+}
+
+/* ─── Aptus Toast System ─────────────────────────── */
+function aptusAlert(message, type = 'info') {
+    const typeMap = {
+        success: { title: 'Succès',      icon: 'check-circle'  },
+        error:   { title: 'Erreur',      icon: 'x-circle'      },
+        warning: { title: 'Attention',   icon: 'alert-triangle' },
+        info:    { title: 'Information', icon: 'info'           },
+    };
+    const t = typeMap[type] || typeMap.info;
+    const container = document.getElementById('aptus-toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `aptus-toast toast-${type}`;
+    toast.innerHTML = `
+        <div class="aptus-toast__icon">
+            <i data-lucide="${t.icon}" style="width:18px;height:18px;"></i>
+        </div>
+        <div class="aptus-toast__body">
+            <div class="aptus-toast__title">${t.title}</div>
+            <div class="aptus-toast__msg">${message}</div>
+        </div>
+        <button class="aptus-toast__close" onclick="aptusToastRemove(this.closest('.aptus-toast'))" aria-label="Fermer">
+            <i data-lucide="x" style="width:14px;height:14px;"></i>
+        </button>
+        <div class="aptus-toast__progress"></div>
+    `;
+    container.appendChild(toast);
+    if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [toast] });
+
+    const timer = setTimeout(() => aptusToastRemove(toast), 4000);
+    toast.dataset.timer = timer;
+}
+function aptusToastRemove(toast) {
+    if (!toast || toast.classList.contains('removing')) return;
+    clearTimeout(toast.dataset.timer);
+    toast.classList.add('removing');
+    setTimeout(() => toast.remove(), 310);
 }
 </script>
 

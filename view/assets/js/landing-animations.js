@@ -31,7 +31,130 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /* ========================================================
-       2. NAVBAR SCROLL EFFECT
+       2. ANIMATED STAT COUNTERS (hero__stat-value.counter)
+       ======================================================== */
+    const counterEls = document.querySelectorAll('.counter[data-target]');
+
+    /**
+     * Animate a single counter element from 0 → target.
+     * @param {HTMLElement} el
+     */
+    function runCounter(el) {
+        const target = parseInt(el.getAttribute('data-target'), 10);
+        if (isNaN(target)) return;
+
+        const duration = 2200; // ms
+        const startTime = performance.now();
+
+        // easeOutQuart for a snappy feel
+        function easeOutQuart(t) {
+            return 1 - Math.pow(1 - t, 4);
+        }
+
+        function tick(now) {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = easeOutQuart(progress);
+            const current = Math.round(eased * target);
+
+            // Format with locale thousands separator
+            el.textContent = current.toLocaleString('fr-FR');
+
+            if (progress < 1) {
+                requestAnimationFrame(tick);
+            } else {
+                el.textContent = target.toLocaleString('fr-FR');
+                // Flash glow at end
+                el.style.transition = 'text-shadow 0.3s ease';
+                el.style.textShadow = '0 0 24px rgba(99,102,241,0.9), 0 0 48px rgba(99,102,241,0.5)';
+                setTimeout(() => {
+                    el.style.textShadow = '';
+                }, 700);
+            }
+        }
+
+        // Reset to 0 before starting
+        el.textContent = '0';
+        requestAnimationFrame(tick);
+    }
+
+    if (counterEls.length > 0) {
+        const counterObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    runCounter(entry.target);
+                } else {
+                    // Reset when out of view so next scroll-in re-animates
+                    entry.target.textContent = '0';
+                }
+            });
+        }, { threshold: 0.4 });
+
+        counterEls.forEach(el => {
+            el.textContent = '0'; // start at 0 on page load
+            counterObserver.observe(el);
+        });
+    }
+
+    /* ========================================================
+       2b. DYNAMIC SATISFACTION RATE WITH AUTO-INCREMENT
+       ======================================================== */
+    const statRateEl = document.getElementById('stat-rate');
+    if (statRateEl) {
+        let currentRate = localStorage.getItem('aptus_satisfaction_rate');
+        if (currentRate === null) {
+            currentRate = 95;
+        } else {
+            currentRate = parseInt(currentRate, 10);
+            currentRate = currentRate + 1;
+            if (currentRate > 99) {
+                currentRate = 95;
+            }
+        }
+        localStorage.setItem('aptus_satisfaction_rate', currentRate);
+
+        const duration = 2200; // ms
+        let startTime = null;
+
+        function easeOutQuart(t) {
+            return 1 - Math.pow(1 - t, 4);
+        }
+
+        function tickRate(now) {
+            if (!startTime) startTime = now;
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = easeOutQuart(progress);
+            const current = Math.round(eased * currentRate);
+
+            statRateEl.textContent = current + '%';
+
+            if (progress < 1) {
+                requestAnimationFrame(tickRate);
+            } else {
+                statRateEl.textContent = currentRate + '%';
+                statRateEl.style.transition = 'text-shadow 0.3s ease';
+                statRateEl.style.textShadow = '0 0 24px rgba(20,184,166,0.9), 0 0 48px rgba(20,184,166,0.5)';
+                setTimeout(() => {
+                    statRateEl.style.textShadow = '';
+                }, 700);
+            }
+        }
+
+        statRateEl.textContent = '0%';
+        const rateObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    requestAnimationFrame(tickRate);
+                    rateObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        rateObserver.observe(statRateEl);
+    }
+
+    /* ========================================================
+       3. NAVBAR SCROLL EFFECT (formerly 2)
        ======================================================== */
     const nav = document.getElementById('landing-nav');
     

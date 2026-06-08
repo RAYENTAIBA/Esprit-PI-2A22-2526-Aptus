@@ -59,7 +59,7 @@ class TuteurController
                 '' AS bio,
                 '' AS avatar,
                 COUNT(DISTINCT f.id_formation)        AS nb_formations,
-                COUNT(DISTINCT i.id_inscri)           AS nb_etudiants
+                COUNT(DISTINCT i.id_inscription)      AS nb_etudiants
             FROM utilisateur u
             LEFT JOIN formation f  ON f.id_tuteur = u.id_utilisateur
             LEFT JOIN inscription i ON i.id_formation = f.id_formation

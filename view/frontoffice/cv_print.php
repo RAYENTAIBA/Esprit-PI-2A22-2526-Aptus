@@ -51,7 +51,7 @@ $cvPayload = json_encode([
             body { -webkit-print-color-adjust: exact; }
         }
         /* Injection of dynamic color */
-        #cv-preview-content { --cv-accent: <?php echo htmlspecialchars($cv['couleurTheme']); ?>; }
+        :root { --cv-accent: <?php echo htmlspecialchars($cv['couleurTheme']); ?> !important; }
     </style>
 </head>
 <body>

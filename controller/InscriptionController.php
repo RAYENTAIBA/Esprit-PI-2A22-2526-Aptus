@@ -468,7 +468,7 @@ class InscriptionController
 
             try {
                 $db = config::getConnexion();
-                $update = $db->prepare("UPDATE inscription SET statut = 'annulée' WHERE id_inscri = ?");
+                $update = $db->prepare("UPDATE inscription SET statut = 'annulée' WHERE id_inscription = ?");
                 $update->execute([(int) $_GET['id_inscription']]);
                 $_SESSION['flash_success'] = "L'inscription a été annulée.";
             } catch (Exception $e) {
@@ -500,7 +500,7 @@ class InscriptionController
 
             try {
                 $db = config::getConnexion();
-                $update = $db->prepare("UPDATE inscription SET statut = ? WHERE id_inscri = ?");
+                $update = $db->prepare("UPDATE inscription SET statut = ? WHERE id_inscription = ?");
                 $update->execute([$_POST['statut'], (int) $_POST['id_inscription']]);
                 $_SESSION['flash_success'] = "Le statut de l'inscription a été mis à jour.";
             } catch (Exception $e) {

@@ -638,6 +638,39 @@ function setViewMode(mode) {
 
 // ═══ DETAILS MODAL LOGIC (UNIFIED) ═══
 let currentOpenedCandidatureId = null;
+let cvObjectUrl = null;
+
+function base64ToBlobUrl(base64Data, defaultMime = 'application/pdf') {
+    try {
+        let mime = defaultMime;
+        let base64String = base64Data;
+        
+        if (base64Data.startsWith('data:')) {
+            const parts = base64Data.split(',');
+            if (parts.length > 1) {
+                const match = parts[0].match(/:(.*?);/);
+                if (match) {
+                    mime = match[1];
+                }
+                base64String = parts[1];
+            }
+        }
+        
+        base64String = base64String.replace(/\s/g, '');
+        
+        const byteCharacters = atob(base64String);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], {type: mime});
+        return URL.createObjectURL(blob);
+    } catch (e) {
+        console.error('Failed to convert base64 to Blob URL:', e);
+        return null;
+    }
+}
 
 // Fonction pour générer ou voir le rapport IA
 function handleAiReport(id) {
@@ -726,11 +759,34 @@ function openDetailsModal(event, id) {
     const cvInput = document.getElementById('cv-data-' + id);
     const iframe = document.getElementById('cv-viewer-iframe');
     
-    if (cvInput && cvInput.value) {
-        iframe.src = cvInput.value;
+    if (cvObjectUrl) {
+        URL.revokeObjectURL(cvObjectUrl);
+        cvObjectUrl = null;
+    }
+    
+    if (cvInput && cvInput.value.trim() !== '') {
+        cvObjectUrl = base64ToBlobUrl(cvInput.value.trim(), 'application/pdf');
+        if (cvObjectUrl) {
+            iframe.src = cvObjectUrl;
+        } else {
+            iframe.src = "";
+            try {
+                iframe.contentDocument?.open();
+                iframe.contentDocument?.write("<body style='font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100%;color:#888;'>Erreur lors de la conversion du CV</body>");
+                iframe.contentDocument?.close();
+            } catch(e) {
+                console.error(e);
+            }
+        }
     } else {
         iframe.src = "";
-        iframe.contentDocument?.write("<body style='font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100%;color:#888;'>Aucun CV disponible</body>");
+        try {
+            iframe.contentDocument?.open();
+            iframe.contentDocument?.write("<body style='font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100%;color:#888;'>Aucun CV disponible</body>");
+            iframe.contentDocument?.close();
+        } catch(e) {
+            console.error(e);
+        }
     }
     
     const overlay = document.getElementById('details-modal-overlay');
@@ -777,6 +833,10 @@ function closeDetailsModal() {
     const modal = overlay.querySelector('.modal');
     if (modal) modal.classList.remove('active');
     document.getElementById('cv-viewer-iframe').src = "";
+    if (cvObjectUrl) {
+        URL.revokeObjectURL(cvObjectUrl);
+        cvObjectUrl = null;
+    }
 }
 
 // ═══ DYNAMIC AJAX SEARCH (CANDIDATES) ═══
